@@ -213,6 +213,11 @@ def eval(obj, env) {
     return eval(safeCar(safeCdr(args)), env)
   } else if (op.is(makeSym('lambda'))) {
     return makeExpr(args, env)
+  } else if (op.is(makeSym('defun'))) {
+    def expr = makeExpr(safeCdr(args), env)
+    def sym = safeCar(args)
+    addToEnv(sym, expr, g_env)
+    return sym
   }
   return apply(eval(op, env), evlis(args, env), env)
 }
