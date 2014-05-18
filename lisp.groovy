@@ -279,9 +279,83 @@ def subrCons = {
   return makeCons(safeCar(it), safeCar(safeCdr(it)))
 }
 
+def subrEq = {
+  def x = safeCar(it)
+  def y = safeCar(safeCdr(it))
+  if (x['tag'] == 'num' && x['tag'] == 'num') {
+    if (x['data'] == y['data']) {
+      return makeSym('t')
+    }
+    return kNil
+  } else if (x.is(y)) {
+    return makeSym('t')
+  }
+  return kNil
+}
+
+def subrAtom = {
+  if (safeCar(it)['tag'] == 'cons') {
+    return kNil
+  }
+  return makeSym('t')
+}
+
+def subrNumberp = {
+  if (safeCar(it)['tag'] == 'num') {
+    return makeSym('t')
+  }
+  return kNil
+}
+
+def subrSymbolp = {
+  if (safeCar(it)['tag'] == 'sym') {
+    return makeSym('t')
+  }
+  return kNil
+}
+
+def subrAddOrMul(fn, init_val) {
+  return {
+    def ret = init_val
+    while (it['tag'] == 'cons') {
+      if (it['car']['tag'] != 'num') {
+        return makeError('wrong type')
+      }
+      ret = fn(ret, it['car']['data'])
+      it = it['cdr']
+    }
+    return makeNum(ret)
+  }
+}
+def subrAdd = subrAddOrMul({x, y -> x + y}, 0)
+def subrMul = subrAddOrMul({x, y -> x * y}, 1)
+
+def subrSubOrDivOrMod(fn) {
+  return {
+    x = safeCar(it)
+    y = safeCar(safeCdr(it))
+    if (x['tag'] != 'num' || y['tag'] != 'num') {
+      return makeError('wrong type')
+    }
+    return makeNum(fn(x['data'], y['data']))
+  }
+}
+def subrSub = subrSubOrDivOrMod({x, y -> x - y})
+def subrDiv = subrSubOrDivOrMod({x, y -> x / y})
+def subrMod = subrSubOrDivOrMod({x, y -> x % y})
+
 addToEnv(makeSym('car'), makeSubr(subrCar), g_env)
 addToEnv(makeSym('cdr'), makeSubr(subrCdr), g_env)
 addToEnv(makeSym('cons'), makeSubr(subrCons), g_env)
+addToEnv(makeSym('eq'), makeSubr(subrEq), g_env)
+addToEnv(makeSym('atom'), makeSubr(subrAtom), g_env)
+addToEnv(makeSym('numberp'), makeSubr(subrNumberp), g_env)
+addToEnv(makeSym('symbolp'), makeSubr(subrSymbolp), g_env)
+addToEnv(makeSym('+'), makeSubr(subrAdd), g_env)
+addToEnv(makeSym('*'), makeSubr(subrMul), g_env)
+addToEnv(makeSym('-'), makeSubr(subrSub), g_env)
+addToEnv(makeSym('/'), makeSubr(subrDiv), g_env)
+addToEnv(makeSym('mod'), makeSubr(subrMod), g_env)
 addToEnv(makeSym('t'), makeSym('t'), g_env)
 
 while (line = System.console().readLine('> ')) {
