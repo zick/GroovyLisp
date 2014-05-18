@@ -160,6 +160,42 @@ def printList(obj) {
   return '(' + ret + ' . ' + printObj(obj) + ')'
 }
 
+def findVar(sym, env) {
+  while (env['tag'] == 'cons') {
+    def alist = env['car']
+    while (alist['tag'] == 'cons') {
+      if (alist['car']['car'].is(sym)) {
+        return alist['car']
+      }
+      alist = alist['cdr']
+    }
+    env = env['cdr']
+  }
+  return kNil
+}
+
+g_env = makeCons(kNil, kNil)
+
+def addToEnv(sym, val, env) {
+  env['car'] = makeCons(makeCons(sym, val), env['car'])
+}
+
+def eval(obj, env) {
+  def tag = obj['tag']
+  if (tag == 'nil' || tag == 'num' || tag == 'error') {
+    return obj
+  } else if (tag == 'sym') {
+    def bind = findVar(obj, env)
+    if (bind.is(kNil)) {
+      return makeError(obj['data'] + ' has no value')
+    }
+    return bind['cdr']
+  }
+  return makeError('noimpl')
+}
+
+addToEnv(makeSym('t'), makeSym('t'), g_env)
+
 while (line = System.console().readLine('> ')) {
-  println(printObj(read(line)[0]))
+  println(printObj(eval(read(line)[0], g_env)))
 }
