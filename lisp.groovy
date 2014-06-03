@@ -358,6 +358,12 @@ addToEnv(makeSym('/'), makeSubr(subrDiv), g_env)
 addToEnv(makeSym('mod'), makeSubr(subrMod), g_env)
 addToEnv(makeSym('t'), makeSym('t'), g_env)
 
-while (line = System.console().readLine('> ')) {
+def ireader = new InputStreamReader(System.in)
+def breader = new BufferedReader(ireader)
+print('> ')
+System.out.flush()
+while ((line = breader.readLine()) != null) {
   println(printObj(eval(read(line)[0], g_env)))
+  print('> ')
+  System.out.flush()
 }
